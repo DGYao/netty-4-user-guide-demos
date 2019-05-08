@@ -50,9 +50,16 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         if (wsUri.equalsIgnoreCase(request.getUri())) {
+            // 升级websocket握手,页面进行socket连接时走这里
+            // request.retain()是为了让计数加一，因为除了SimpleChannelInboundHandler的channelRead要realease一次，
+            // WebSocketServerProtocolHandshakeHandler的channelRead里会调用WebSocketServerProtocolHandler.forbiddenHttpRequestResponder()释放一次，
+            // 只在传入对象为FullHttpRequest时进行释放，并且write出去到下一个out-handler，否则跳到下一个in-handler
             ctx.fireChannelRead(request.retain());                  //2
         } else {
+            //一般通过 post 上传大数据时，才会使用到 100-continue 协议
             if (HttpHeaders.is100ContinueExpected(request)) {
+                //正确情况下，收到请求后，返回 100 或错误码。
+                //如果在发送 100-continue 前收到了 post 数据（客户端提前发送 post 数据），则不发送 100 响应码(略去)。
                 send100Continue(ctx);                               //3
             }
 
@@ -67,15 +74,15 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, file.length());
                 response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             }
-            ctx.write(response);                    //6
+            ctx.write(response);                    //6 分两步传输 第一步是响应头 第二步是下面的文件内容
 
-            if (ctx.pipeline().get(SslHandler.class) == null) {     //7
+            if (ctx.pipeline().get(SslHandler.class) == null) {     //7 是否加密压缩
                 ctx.write(new DefaultFileRegion(file.getChannel(), 0, file.length()));
             } else {
                 ctx.write(new ChunkedNioFile(file.getChannel()));
             }
-            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);           //8
-            if (!keepAlive) {
+            ChannelFuture future = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);           //8 LastHttpContent.EMPTY_LAST_CONTENT标识响应结束
+            if (!keepAlive) {//如果不需要长连接则传输完成后关闭channel
                 future.addListener(ChannelFutureListener.CLOSE);        //9
             }
             

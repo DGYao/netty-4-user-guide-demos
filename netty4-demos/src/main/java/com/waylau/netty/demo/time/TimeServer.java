@@ -31,11 +31,11 @@ public class TimeServer {
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
-                     ch.pipeline().addLast(new TimeServerHandler());
+                     ch.pipeline().addLast(new TimeEncoder(),new TimeServerHandler());
                  }
              })
-             .option(ChannelOption.SO_BACKLOG, 128)          // (5)
-             .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
+             .option(ChannelOption.SO_BACKLOG, 128)//接收的队列长度  for bossGroup        // (5)
+             .childOption(ChannelOption.SO_KEEPALIVE, true);//TCP会主动探测空闲连接的有效性  for workerGroup // (6)
 
             // 绑定端口，开始接收进来的连接
             ChannelFuture f = b.bind(port).sync(); // (7)

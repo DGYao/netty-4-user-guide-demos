@@ -21,12 +21,12 @@ public class WebsocketChatServerInitializer extends
     public void initChannel(SocketChannel ch) throws Exception {//2
 		 ChannelPipeline pipeline = ch.pipeline();
 
-        pipeline.addLast(new HttpServerCodec());
-		pipeline.addLast(new HttpObjectAggregator(64*1024));
-		pipeline.addLast(new ChunkedWriteHandler());
-		pipeline.addLast(new HttpRequestHandler("/ws"));
-		pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
-		pipeline.addLast(new TextWebSocketFrameHandler());
+        pipeline.addLast(new HttpServerCodec());//in & out
+		pipeline.addLast(new HttpObjectAggregator(64*1024));//in
+		pipeline.addLast(new ChunkedWriteHandler());//in $ out
+		pipeline.addLast(new HttpRequestHandler("/ws"));//in
+		pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));//in
+		pipeline.addLast(new TextWebSocketFrameHandler());//in
 
     }
 }

@@ -19,7 +19,7 @@ public final class HeartbeatServer {
     static final int PORT = 8082;
 
     public static void main(String[] args) throws Exception {
-
+        System.out.println(Runtime.getRuntime().availableProcessors());
         // Configure the server.
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();

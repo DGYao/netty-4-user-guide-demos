@@ -36,7 +36,12 @@ public class HeartbeatServerHandler extends ChannelInboundHandlerAdapter {
 			} else if (event.state() == IdleState.ALL_IDLE) {
 				type = "all idle";
 			}
-
+			/**
+			 * 1）duplicate方法：复制当前对象，复制后的对象与前对象共享缓冲区，且维护自己的独立索引
+			 * 2）copy方法：复制一份全新的对象，内容和缓冲区都不是共享的
+			 * 3）slice方法：获取调用者的子缓冲区，且与原缓冲区共享缓冲区
+			 */
+			//复制当前对象，复制后的对象与前对象共享缓冲区，且维护自己的独立索引，多个channel可以独立维护自己的byteBuf的写进度
 			ctx.writeAndFlush(HEARTBEAT_SEQUENCE.duplicate()).addListener(
 					ChannelFutureListener.CLOSE_ON_FAILURE);
  

@@ -13,6 +13,7 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
     	System.out.println(ctx.channel().remoteAddress()+"->Server :"+ msg.toString());
         ctx.write(msg); // (1)
         ctx.flush(); // (2)
+//        ctx.writeAndFlush(msg);
     }
 
     @Override
